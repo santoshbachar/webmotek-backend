@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"net/url"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -52,30 +51,31 @@ func SearchParser(res *http.Response, action string, tags string) []SearchModel 
 	// but is bulky than we got in mobile version
 	// so we are not going to use this version
 	// and instead use the mobile version
-	/*doc.Find(".search").Each(func(i int, s *goquery.Selection) {
+	doc.Find("div.rc").Each(func(i int, s *goquery.Selection) {
 		fmt.Println("enter .search")
-		r := s.Find(".r")
+
+		r := s.Find("div.r")
 		a := r.Find("a")
 		href, exists := a.Attr("href")
 		if exists == false {
 			fmt.Println("no href")
 		}
-		h3 := r.Find("h3").Text()
+		h3 := a.Find("h3").Text()
 
 		// description
-		d := s.Find(".s").Find(".st").Text()
+		d := s.Find("div.s span.st").Text()
 
 		fmt.Println("title", h3)
 		fmt.Println("a", href)
 		fmt.Println("description", d)
 
-		search = append(search, SearchModel{title: h3, URL: href, description: d})
+		search = append(search, SearchModel{Title: h3, URL: href, Description: d})
 
-		fmt.Println("search after append", search)
-	})*/
+		// fmt.Println("search after append", search)
+	})
 
 	// equivalent of .search in desktop mode
-	fmt.Println("going to do doc.Find")
+	/*fmt.Println("going to do doc.Find")
 	doc.Find("div.ZINbbc.xpd.O9g5cc.uUPGi").Each(func(i int, s *goquery.Selection) {
 		// fmt.Println("enter .ZINbbc xpd O9g5cc uUPGi")
 		// sm := s.Find("div.ZINbbc.xpd.O9g5cc.uUPGi")
@@ -113,6 +113,12 @@ func SearchParser(res *http.Response, action string, tags string) []SearchModel 
 		// BNeawe s3v9rd AP7Wnd instead of .st
 		d := s.Find("div.kCrYT").Find("div.BNeawe.s3v9rd.AP7Wnd").Text()
 
+		// didn't work
+		// d = html.EscapeString(d)
+		d = strings.ReplaceAll(d, "�", "")
+
+		d = fmt.Sprintf("%s", d)
+
 		fmt.Println("title", h3)
 		//fmt.Println("a", q)
 		fmt.Println("description", d)
@@ -121,7 +127,8 @@ func SearchParser(res *http.Response, action string, tags string) []SearchModel 
 
 		// fmt.Println("search after append", search)
 	})
-	fmt.Println("doc.Find() done")
+	fmt.Println("doc.Find() done")*/
+
 	fmt.Println("len of search", len(search))
 	return search
 }

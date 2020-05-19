@@ -3,9 +3,9 @@ package main
 import (
 	"errors"
 	"fmt"
+	"html/template"
 	"net/http"
 	"strings"
-	"text/template"
 
 	"github.com/santoshbachar/webmotek-backend/engine"
 )
@@ -43,9 +43,9 @@ func HandleSearchRequest(w http.ResponseWriter, r *http.Request) {
 
 	// fmt.Fprint(w, "the query we got is ", query)
 
-	const GOOGLE_BASE_URL = "https://www.google.com/search?q="
-	google_search_url := GOOGLE_BASE_URL + query
-	res := <-engine.FetchWebPage(google_search_url)
+	const GoogleBaseURL = "https://www.google.com/search?q="
+	GoogleSearchURL := GoogleBaseURL + query
+	res := <-engine.ScrapeGoogle(GoogleSearchURL)
 
 	defer res.Body.Close()
 
@@ -53,9 +53,9 @@ func HandleSearchRequest(w http.ResponseWriter, r *http.Request) {
 	doc := engine.SearchParser(&res, "", "")
 	// fmt.Println(doc)
 	fmt.Println("this is from main")
-	for _, v := range doc {
+	/*for _, v := range doc {
 		fmt.Println(v.Title)
-	}
+	}*/
 
 	tmpl, err := (template.ParseFiles("./template/search.html"))
 	if err != nil {
@@ -68,7 +68,6 @@ func HandleSearchRequest(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Fprint(w, "goquery to html error")
 	}
-
 	fmt.Fprint(w, html)*/
 
 	// fmt.Fprint(w, tmpl.Html)
