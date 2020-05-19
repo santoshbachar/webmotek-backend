@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
+	"text/template"
 
 	"github.com/santoshbachar/webmotek-backend/engine"
 )
@@ -13,7 +15,63 @@ func main() {
 
 	http.HandleFunc("/", HandleRequest)
 
-	http.ListenAndServe(":8080", nil)
+	http.HandleFunc("/search", HandleSearchRequest)
+
+	http.ListenAndServe(":8081", nil)
+}
+
+// Handle Google Search
+func HandleSearchRequest(w http.ResponseWriter, r *http.Request) {
+	// check for request method
+	if r.Method != http.MethodGet {
+		fmt.Fprint(w, "Expecting a GET method")
+		return
+	}
+
+	// engine
+	// search
+	// other param eg. result page number
+
+	q := r.URL.Query()["q"]
+	query, err := getParam(q)
+	if err != nil {
+		fmt.Fprint(w, "query error", err)
+		return
+	}
+	// now encode url to Google standard
+	query = strings.ReplaceAll(query, " ", "+")
+
+	// fmt.Fprint(w, "the query we got is ", query)
+
+	const GOOGLE_BASE_URL = "https://www.google.com/search?q="
+	google_search_url := GOOGLE_BASE_URL + query
+	res := <-engine.FetchWebPage(google_search_url)
+
+	defer res.Body.Close()
+
+	// here doc is []SearchModel
+	doc := engine.SearchParser(&res, "", "")
+	// fmt.Println(doc)
+	fmt.Println("this is from main")
+	for _, v := range doc {
+		fmt.Println(v.Title)
+	}
+
+	tmpl, err := (template.ParseFiles("./template/search.html"))
+	if err != nil {
+		fmt.Fprintf(w, "something is wrong with the search template")
+	}
+
+	tmpl.Execute(w, doc)
+
+	/*html, err := doc.Html()
+	if err != nil {
+		fmt.Fprint(w, "goquery to html error")
+	}
+
+	fmt.Fprint(w, html)*/
+
+	// fmt.Fprint(w, tmpl.Html)
 }
 
 // HandleRequest handles incoming request

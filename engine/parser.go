@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -21,6 +22,108 @@ func defaultParser(doc *goquery.Document) {
 	RemoveInput(doc)
 	RemoveButton(doc)
 	RemoveTextArea(doc)
+}
+
+// SearchParser ...
+func SearchParser(res *http.Response, action string, tags string) []SearchModel {
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("about to do defaultParser")
+
+	// defaultParser(doc)
+	/*doc.Find("head").Each(func(index int, ele *goquery.Selection) {
+		// head is only left with title and style, so
+		// it can be remove in future
+		// ele.Remove()
+		style := ele.Find("style")
+		style.Remove()
+	})*/
+
+	fmt.Println("default parser done")
+
+	var search []SearchModel
+
+	// This one works with the desktop version of google
+	// changing the agent will do
+	// but is bulky than we got in mobile version
+	// so we are not going to use this version
+	// and instead use the mobile version
+	/*doc.Find(".search").Each(func(i int, s *goquery.Selection) {
+		fmt.Println("enter .search")
+		r := s.Find(".r")
+		a := r.Find("a")
+		href, exists := a.Attr("href")
+		if exists == false {
+			fmt.Println("no href")
+		}
+		h3 := r.Find("h3").Text()
+
+		// description
+		d := s.Find(".s").Find(".st").Text()
+
+		fmt.Println("title", h3)
+		fmt.Println("a", href)
+		fmt.Println("description", d)
+
+		search = append(search, SearchModel{title: h3, URL: href, description: d})
+
+		fmt.Println("search after append", search)
+	})*/
+
+	// equivalent of .search in desktop mode
+	fmt.Println("going to do doc.Find")
+	doc.Find("div.ZINbbc.xpd.O9g5cc.uUPGi").Each(func(i int, s *goquery.Selection) {
+		// fmt.Println("enter .ZINbbc xpd O9g5cc uUPGi")
+		// sm := s.Find("div.ZINbbc.xpd.O9g5cc.uUPGi")
+		r := s.Find("div.kCrYT") // equivalent of .r in desktop mode
+		a := r.Find("a")
+		href, exists := a.Attr("href")
+		if exists == false {
+			fmt.Println("no href")
+			return
+		}
+
+		// in mobile version just getting the href is not done yet.
+		// we have to parse it to get the url inside of it.
+
+		hrefParse, err := url.Parse(href)
+		if err != nil {
+			fmt.Println("href parse error", err)
+			return
+		}
+
+		hrefValues, err := url.ParseQuery(hrefParse.RawQuery)
+		if err != nil {
+			fmt.Println("hrefValues error", err)
+			return
+		}
+
+		// q is the new href
+		q := hrefValues.Get("q")
+
+		// here in mobile version title is there in ".a" instead of ".r"
+		h3 := a.Find("div.BNeawe.vvjwJb.AP7Wnd").Text()
+
+		// description
+		// .kCrYT instead of .s
+		// BNeawe s3v9rd AP7Wnd instead of .st
+		d := s.Find("div.kCrYT").Find("div.BNeawe.s3v9rd.AP7Wnd").Text()
+
+		fmt.Println("title", h3)
+		//fmt.Println("a", q)
+		fmt.Println("description", d)
+
+		search = append(search, SearchModel{Title: h3, URL: q, Description: d})
+
+		// fmt.Println("search after append", search)
+	})
+	fmt.Println("doc.Find() done")
+	fmt.Println("len of search", len(search))
+	return search
 }
 
 func allowParser(doc **goquery.Document, tags *[]string) {

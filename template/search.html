@@ -1,0 +1,11 @@
+<html>
+<head>
+    <title>Google Search</title>
+    </head>
+    <body>
+        {{range .}}
+        <a href="{{.URL}}">{{.Title}}</a>
+        <p>{{.Description}}</p>
+        {{end}}
+    </body>
+    </html>
